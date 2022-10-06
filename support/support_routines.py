@@ -141,7 +141,72 @@ def basicMapPlotScat1(x,y,data,namefile, area,
     
     
     
+def mapPlotScatZoom(x,y,data,namefile, vmin=0, vmax=300, var=None, area=None):
+    # Make a Mercator map of the data using Cartopy
     
+    if(area==None):
+        sys.stderr.write("Error: an area of interest must be given as input")
+        sys.exit(1) 
+      
+    fig = plt.figure()
+    
+    crs = area.to_cartopy_crs()
+    ortho = crs 
+    ax = plt.axes(projection=ortho)
+    geo = ccrs.PlateCarree() #ccrs.Geodetic()        
+    
+    ax.add_feature(cartopy.feature.LAND, zorder=0, edgecolor='black',linewidth=0.1)
+    
+    xy = ortho.transform_points(geo, x, y)
+
+    ax.set_global()
+    ax.gridlines()    
+    gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=0.07, 
+                      color='black', alpha=0.5, linestyle='--', draw_labels=True)
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER  
+    
+    #work_ECMWF_ds.u10n[:,:,0].where(
+    #work_ECMWF_ds.lsm[:,:,0]==0).plot(ax=ax,
+    #transform=ccrs.PlateCarree(), cmap="viridis")
+    
+    # Plot the air temperature as colored circles and the wind speed as vectors.
+    im = ax.scatter(
+        xy[:,0],
+        xy[:,1],
+        c=data,
+        s=0.5, #0.15
+        edgecolors= 'none',
+        marker = matplotlib.markers.MarkerStyle(marker='o',fillstyle='full'),#"o",
+        #color='red'
+        cmap="viridis",
+        vmin=vmin, vmax=vmax
+        )
+    
+    
+    if(vmax>50):  # if the provided vmax is higher than 50, probably the user wants to plot TB's
+        if(var):
+            ax.set_title(var+" "+"Temperature Brightness")
+            fig.colorbar(im).set_label("Temp. Bright [K]")
+        else:
+            ax.set_title("Temperature Brightness")
+            fig.colorbar(im).set_label("Temp. Bright [K]")
+    else:          
+        
+        if(var):
+            ax.set_title(var+" "+"10m Wind speed")
+            fig.colorbar(im).set_label("Wind Speed [m/s]")  
+        else:
+            ax.set_title("NameOfVariable"+" "+"10m Wind speed")
+            fig.colorbar(im).set_label("Wind Speed [m/s]") 
+            
+    #fig.colorbar(im).set_label("10m Wind Speed, RadEst [m/s]")
+    
+# Use an utility function to add tick labels and land and ocean features to the map.
+    
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig(namefile+'.jpg', bbox_inches='tight', dpi=300)      
     
     
     
