@@ -44,9 +44,10 @@ def defineArea(corners, proj_id, datum):
     
 def get_Sat_frame(ds, area_interest, chan = 0, var=None, begin_t=None, end_t=None):
     
+
     grid_lons_interest, grid_lats_interest = area_interest.get_lonlats()
 
-    swathDef = SwathDefinition(lons=ds.lon.values, lats=ds.lat.values)
+    swathDef = SwathDefinition(lons=ds.lon.to_numpy(), lats=ds.lat.to_numpy())
     lon_scene, lat_scene = swathDef.get_lonlats()
 
     if(chan>=0):
@@ -57,10 +58,11 @@ def get_Sat_frame(ds, area_interest, chan = 0, var=None, begin_t=None, end_t=Non
             lon_scene, lat_scene, ds[var][:,:,chan].values,
             radius_of_influence=3000)
     else:
+
         reduced_lon_scene, reduced_lat_scene, reduced_data_scene = \
                            data_reduce.swath_from_lonlat_grid(
             grid_lons_interest, grid_lats_interest,
-            lon_scene, lat_scene, ds[var][:,:].values,
+            lon_scene, lat_scene, ds[var][:,:].to_numpy(),
             radius_of_influence=3000)
 
     return reduced_lon_scene, reduced_lat_scene, reduced_data_scene
